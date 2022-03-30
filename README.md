@@ -1,5 +1,5 @@
 # pixel-art-diffusion
-A small project, using a diffusion model to generate 32x32 pixel art characters. I trained a model which is [over here](models/AOS_AOF) on some 32x32 pixel art characters. The architecture is (supposed to be) similar to the one from [this paper](https://arxiv.org/abs/2105.05233).
+A small project, using a diffusion model to generate 32x32 pixel art characters. I trained a model which is [over here](models) on some 32x32 pixel art characters. The architecture is (supposed to be) similar to the one from [this paper](https://arxiv.org/abs/2105.05233).
 
 ## Usage
 This project uses PyTorch 1.11.0, Numpy 1.22.3, TorchVision 0.12.0, matplotlib 3.5.1 and tqdm.
@@ -13,7 +13,10 @@ which will give you an image similar to
 
 ![example](example.png)
 
-(as you can see, quality is very variable... It works best if you use CLIP to find the good ones with the caption 'cool pixel art character' or something 😎)
+As you can see, the quality is very variable... It works best if you use CLIP to find the good ones with the caption 'cool pixel art character' or something 😎. Here's the best 100 out of 1000 samples, according to CLIP:
+
+![example](example_2.png)
+
 
 To train the model, use train.py. E.g. to train from scratch on your own data:
 ```
