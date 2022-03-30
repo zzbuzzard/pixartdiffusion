@@ -4,10 +4,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib import image
 from matplotlib import colors
-
-ART_SIZE = 32
-NUM_CHANNELS = 3
-MODE = "RGB"
+from parameters import *
 
 # Loads an image into a numpy array
 # Returns a float array of shape ART_SIZE x ART_SIZE x NUM_CHANNELS, normalised to 0..1
@@ -114,7 +111,10 @@ def draw_list(outputs):
     sheet_big = sharp_scale(sheet, 20)
     plt.grid(False);plt.axis('off')
     plt.imshow(sheet_big)
-    plt.show()
+
+    plt.show(block=False)
+    plt.pause(0.1)
+
     
 # Creates a spritesheet from images with size 'size'
 def make_spritesheet(ims):
