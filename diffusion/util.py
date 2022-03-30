@@ -159,7 +159,7 @@ def save_model(model, epoch, path):
 
 # Loads the model from the specified path
 def load_model(model, path):
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     epoch = checkpoint['epoch']
     

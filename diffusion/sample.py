@@ -177,7 +177,7 @@ if __name__=="__main__":
     parser.add_argument("model_path", help="Path to the model.")
     parser.add_argument("num_samples", help="Number of samples.", type=int)
     parser.add_argument("-o", help="Path to save output to. The generated image will be saved as a single spritesheet .png here. If empty, does not save.", default="", nargs='?')
-    parser.add_argument("-noise_mul", help="Standard deviation during sampling. Larger values lead to more chaotic samples. Default: 8", default=8, nargs='?', type=int)
+    parser.add_argument("-noise_mul", help="Standard deviation during sampling. Larger values lead to more chaotic samples. Default: 8.0", default=8, nargs='?', type=float)
 
     args = parser.parse_args()
 
