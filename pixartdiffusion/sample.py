@@ -118,7 +118,7 @@ def sample_step(model, im, t, noise_mul = 8, classifier_func = None, classifier_
         # if t==1 don't attempt to use classifier guidance
         if classifier_func != None and t != 1:
             grad = classifier_func(im, ts)
-            new_mean += grad * classifier_mul * getσ_classifier(t)
+            new_mean += grad * classifier_mul * getσ(t)
 
         add_noise = getσ(t) * z * noise_mul
         im = new_mean + add_noise      # add random noise on
