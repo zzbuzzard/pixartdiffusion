@@ -186,15 +186,11 @@ if __name__=="__main__":
     print("Loaded model from epoch", epoch)
 
     xs = sample(model, args.num_samples, display_count=0, noise_mul=args.noise_mul)
-    util.draw_list(xs)
+    sheet = util.to_drawable(xs)
+    util.draw_im(sheet)
 
     if args.o != "":
-        xs = xs.cpu().numpy()
-        xs = np.clip(xs, 0, 1)
-        xs = [util.draw_mod(i) for i in xs]
-        xs = util.make_spritesheet(xs)
-
-        image.imsave(args.o, xs)
+        image.imsave(args.o, sheet)
 
     input("Press enter...")
     

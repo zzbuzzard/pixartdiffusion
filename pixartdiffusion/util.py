@@ -103,27 +103,49 @@ def draw_mod(im):
 
 # Given a tensor or numpy array with shape (B x C x W x H), draws all images using matplotlib
 def draw_list(outputs):
-    if type(outputs) == torch.Tensor:
-        outputs = outputs.detach().cpu()
-    outputs = [draw_mod(i) for i in outputs]
+    sheet = to_drawable(outputs)
+    draw_im(sheet)
 
-    sheet = make_spritesheet(outputs)
-    sheet_big = sharp_scale(sheet, 20)
+# Draws an image, given as a numpy array, as long as it is compatible with plt.imshow
+def draw_im(im):
     plt.grid(False);plt.axis('off')
-    plt.imshow(sheet_big)
-
+    plt.imshow(im)
     plt.show(block=False)
     plt.pause(0.1)
 
+# Given a tensor or numpy array with shape (B x C x W x H), creates a spritesheet ready for drawing/downloading/etc
+def to_drawable(outputs, fix_width=None, fix_height=None, scale=1):
+    if type(outputs) == torch.Tensor:
+        outputs = outputs.detach().cpu().numpy()
+    outputs = [draw_mod(i) for i in outputs]
+
+    sheet = make_spritesheet(outputs, fix_width=fix_width, fix_height=fix_height)
+    if scale != 1:
+        sheet = sharp_scale(sheet, scale)
+
+    sheet = np.clip(sheet, 0, 1)
+    return sheet
     
 # Creates a spritesheet from images with size 'size'
-def make_spritesheet(ims):
+def make_spritesheet(ims, fix_width=None, fix_height=None):
+    assert fix_width is None or fix_height is None, "Canot fix both width and height!"
+    
     size, size_, _ = ims[0].shape
     assert size == size_, "Spritesheet: input images must be square"
-    
-    Y = int(len(ims) ** 0.5)
-    X = len(ims) // Y
-    while X*Y < len(ims): X+=1
+
+    # Calculate (width, height) of spritesheet
+    if fix_width is not None:
+        X = fix_width
+        Y = len(ims)//X
+        while X*Y < len(ims): Y+=1
+    elif fix_height is not None:
+        Y = fix_height
+        X = len(ims)//Y
+        while X*Y < len(ims): X+=1
+    else:
+        Y = int(len(ims) ** 0.5)
+        X = len(ims) // Y
+        while X*Y < len(ims): X+=1
 
     final = np.zeros((Y*size, X*size, 3), dtype=np.float32)
 
