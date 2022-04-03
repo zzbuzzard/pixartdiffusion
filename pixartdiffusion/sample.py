@@ -46,6 +46,10 @@ def clip_grad_func(clip_model, tokenized_text, num_shifts = 16, shift_range = 14
         B,_,_,_ = ims.shape
         ims = sharp_scale(ims, clip_res_mul, dims=(2,3))
         grad = torch.zeros_like(ims)
+        
+        possible_shifts = [(i%(2*shift_range+1) - shift_range, i//(2*shift_range+1) - shift_range) for i in range(1, (2*shift_range+1)**2)]
+        random.shuffle(possible_shifts)
+        possible_shifts = [(0,0)] + possible_shifts # Make sure shift of (0,0) always included
 
         with torch.enable_grad():
             im_v = torch.autograd.Variable(ims, requires_grad=True)
@@ -53,12 +57,7 @@ def clip_grad_func(clip_model, tokenized_text, num_shifts = 16, shift_range = 14
             clip_input = torch.zeros((num_shifts * B, NUM_CHANNELS, ART_SIZE*clip_res_mul, ART_SIZE*clip_res_mul), device=device, dtype=torch.float)
 
             # Create shifts
-            for i in range(num_shifts):
-                if i == 0:
-                    shift_x = shift_y = 0
-                else:
-                    shift_x = random.randint(-shift_range, shift_range)
-                    shift_y = random.randint(-shift_range, shift_range)
+            for i, (shift_x, shift_y) in enumerate(possible_shifts[:num_shifts]):
                 clip_input[i*B:(i+1)*B] = torch.roll(im_v, (shift_x, shift_y), (2, 3))
 
             # Encode each shift and get gradients
