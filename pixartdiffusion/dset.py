@@ -1,8 +1,9 @@
 import torch
 from torch.utils.data import Dataset
 from glob import glob
-from util import load_im, flip_hor, shift
 import random
+
+from pixartdiffusion.util import load_im, flip_hor, shift
 
 # Performs a random flip and a random shift on a numpy array image
 def transform(im):

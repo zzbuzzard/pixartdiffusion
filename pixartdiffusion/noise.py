@@ -1,5 +1,5 @@
 import torch
-from parameters import STEPS
+from pixartdiffusion.parameters import STEPS
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

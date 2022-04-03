@@ -1,7 +1,7 @@
 import torch
-from parameters import *
 from tqdm import tqdm
-from noise import getβ, noise, αt
+from pixartdiffusion.parameters import *
+from pixartdiffusion.noise import getβ, noise, αt
 
 # Downscales a 2D tensor exactly, using averaging
 def downscale_avg(im, factor):

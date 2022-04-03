@@ -1,7 +1,7 @@
-from time_embed import get_timestamp_embedding, TIME_DIM
+from pixartdiffusion.time_embed import get_timestamp_embedding, TIME_DIM
 import torch
 from torch import nn
-from parameters import *
+from pixartdiffusion.parameters import *
 
 channels = [64, 128, 256]
 last_channel = channels[-1]

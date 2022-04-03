@@ -4,7 +4,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib import image
 from matplotlib import colors
-from parameters import *
+from pixartdiffusion.parameters import *
 
 # Loads an image into a numpy array
 # Returns a float array of shape ART_SIZE x ART_SIZE x NUM_CHANNELS, normalised to 0..1
