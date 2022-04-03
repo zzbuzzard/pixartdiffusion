@@ -36,6 +36,8 @@ def classifier_to_grad_func(classifier, label):
 def clip_grad_func(clip_model, text, num_shifts = 16, shift_range = 14):
     assert type(text)==str
 
+    clip_res_mul = clip_model.visual.input_resolution // ART_SIZE
+
     text = clip.tokenize([text]).to(device)
     text_encoding = clip_model.encode_text(text)
 
@@ -76,6 +78,7 @@ def clip_grad_func(clip_model, text, num_shifts = 16, shift_range = 14):
 
 # Given a tensor of images and a list of captions, evaluates each caption on each image
 def evaluate_clip(clip_model, ims, text_list):
+    clip_res_mul = clip_model.visual.input_resolution // ART_SIZE
     text = clip.tokenize(text_list).to(device)
     with torch.no_grad():
         ims = sharp_scale(ims, clip_res_mul, dims=(2,3))
@@ -162,6 +165,15 @@ def sample(model, N, display_count = 4, noise_mul = 6, classifier_func = None, c
         
         # -1..1 -> 0..1
         return (h+1)/2
+
+# Sorts an input list of images using CLIP
+# Images must be Tensors
+def CLIP_rerank(clip_model, images, text_prompt):
+    ans = evaluate_clip(images, [text_prompt])
+    x = ans.cpu()
+    y = [(v,i) for i,v in enumerate(x)]
+    y = sorted(y,key=lambda a:-a[0])
+    return y
 
 
 if __name__=="__main__":
