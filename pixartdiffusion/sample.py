@@ -2,6 +2,8 @@ import torch
 from tqdm import tqdm
 from pixartdiffusion.parameters import *
 from pixartdiffusion.noise import getβ, noise, αt
+from pixartdiffusion.util import sharp_scale
+import random
 
 # Downscales a 2D tensor exactly, using averaging
 def downscale_avg(im, factor):
@@ -33,13 +35,11 @@ def classifier_to_grad_func(classifier, label):
 # The CLIP model's input size must be a multiple of ART_SIZE
 # The input image will be shifted num_shifts times and input to CLIP each time, the gradients averaged
 #  shift_range gives the max amount that it will be shifted by in pixels, AFTER it is scaled up
-def clip_grad_func(clip_model, text, num_shifts = 16, shift_range = 14):
-    assert type(text)==str
-
+def clip_grad_func(clip_model, tokenized_text, num_shifts = 16, shift_range = 14):
     clip_res_mul = clip_model.visual.input_resolution // ART_SIZE
 
-    text = clip.tokenize([text]).to(device)
-    text_encoding = clip_model.encode_text(text)
+    tokenized_text = tokenized_text.to(device)
+    text_encoding = clip_model.encode_text(tokenized_text)
 
     # (note: ts is ignored, the CLIP model is not noised)
     def f(ims, ts):
@@ -77,15 +77,15 @@ def clip_grad_func(clip_model, text, num_shifts = 16, shift_range = 14):
 
 
 # Given a tensor of images and a list of captions, evaluates each caption on each image
-def evaluate_clip(clip_model, ims, text_list):
+def evaluate_clip(clip_model, ims, tokenized_text):
     clip_res_mul = clip_model.visual.input_resolution // ART_SIZE
-    text = clip.tokenize(text_list).to(device)
+    text = tokenized_text.to(device)
     with torch.no_grad():
         ims = sharp_scale(ims, clip_res_mul, dims=(2,3))
         logits_per_im, logits_per_text = clip_model(ims, text)
         
-        if len(text_list) > 1:
-            return logits_per_im.softmax(dim=-1)
+##        if len(text_list) > 1:
+##            return logits_per_im.softmax(dim=-1)
         return logits_per_im
 
 # Get the standard deviation of sampling at time t
@@ -168,13 +168,12 @@ def sample(model, N, display_count = 4, noise_mul = 6, classifier_func = None, c
 
 # Sorts an input list of images using CLIP
 # Images must be Tensors
-def CLIP_rerank(clip_model, images, text_prompt):
-    ans = evaluate_clip(images, [text_prompt])
-    x = ans.cpu()
-    y = [(v,i) for i,v in enumerate(x)]
+def CLIP_rerank(clip_model, images, tokenized_text):
+    ans = evaluate_clip(clip_model, images, tokenized_text).detach().cpu()
+    y = [(v,i) for i,v in enumerate(ans)]
     y = sorted(y,key=lambda a:-a[0])
-    return y
-
+    y = [i for v,i in y]
+    return images[y]
 
 if __name__=="__main__":
     # Handle command line arguments
