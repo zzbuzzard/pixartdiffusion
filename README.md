@@ -1,7 +1,11 @@
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zzbuzzard/pixartdiffusion/blob/main/notebook/pixel-art-diffusion.ipynb)
+
 # pixel-art-diffusion
 A small project, using a diffusion model to generate 32x32 pixel art characters. I trained a model which is [over here](models) on some 32x32 pixel art characters. The architecture is (supposed to be) similar to the one from [this paper](https://arxiv.org/abs/2105.05233).
 
 ## Usage
+The Colab (above) is the easiest way to use this! Otherwise...
+
 This project uses PyTorch 1.11.0, Numpy 1.22.3, TorchVision 0.12.0, matplotlib 3.5.1 and tqdm.
 
 To sample from the model, use sample.py
