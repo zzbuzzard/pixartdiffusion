@@ -2,7 +2,7 @@ import torch
 from tqdm import tqdm
 from pixartdiffusion.parameters import *
 from pixartdiffusion.noise import getβ, noise, αt
-from pixartdiffusion.util import sharp_scale
+from pixartdiffusion.util import sharp_scale, draw_list
 import random
 
 # Downscales a 2D tensor exactly, using averaging
