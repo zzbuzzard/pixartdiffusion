@@ -106,18 +106,12 @@ def getσ(t):
     # return ((H - L) * t/steps + L).float()
     return getβ(t)
 
-def getσ_classifier(t):
-    L = torch.tensor(0.005, dtype=torch.float)
-    H = torch.tensor(0.018, dtype=torch.float)
-
-    return ((H - L) * t/STEPS + L).float()
-
 
 # Goes from x(t) -> x(t-1)
 #  noise_mul: Multiplier on top of getσ(t). Higher values lead to more chaotic images
 #  classifier_func: Output of clip_grad_func or classifier_to_grad_func
-#  classifier_mul: Classifier multiplier
-def sample_step(model, im, t, noise_mul = 8, classifier_func = None, classifier_mul = 1):
+#  classifier_mul_func: Classifier multiplier function
+def sample_step(model, im, t, noise_mul = 8, classifier_func = None, classifier_mul_func = None):
     with torch.no_grad():
         N,_,_,_ = im.shape
 
@@ -135,7 +129,10 @@ def sample_step(model, im, t, noise_mul = 8, classifier_func = None, classifier_
         # if t==1 don't attempt to use classifier guidance
         if classifier_func != None and t != 1:
             grad = classifier_func(im, ts)
-            new_mean += grad * classifier_mul * getσ_classifier(t)
+            if classifier_mul_func is None:
+                new_mean += grad * getσ(t)
+            else:
+                new_mean += grad * classifier_mul_func(t) # * getσ_classifier(t)
 
         add_noise = getσ(t) * z * noise_mul
         im = new_mean + add_noise      # add random noise on
@@ -144,16 +141,16 @@ def sample_step(model, im, t, noise_mul = 8, classifier_func = None, classifier_
 
 # Repeats sample_step to go from x(t) to x(0)
 # im : N x C x W x H
-def sample_from(model, im, t, noise_mul = 6, classifier_func = None, classifier_mul = 1):
+def sample_from(model, im, t, noise_mul = 6, classifier_func = None, classifier_mul_func = None):
     with torch.no_grad():
         for i in range(t, 0, -1):
-            im = sample_step(model, im, i, noise_mul=noise_mul, classifier_func=classifier_func, classifier_mul=classifier_mul)
+            im = sample_step(model, im, i, noise_mul=noise_mul, classifier_func=classifier_func, classifier_mul_func=classifier_mul_func)
     return (im+1)/2
 
 # 'Redraws' an image by adding some amount of noise then applying the model to remove it
 # im : N x C x W x H
 # jump 1: totally redraw          jump 0: no change
-def redraw_im(model, im, jump=0.5, noise_mul=6, classifier_func=None, classifier_mul=1):
+def redraw_im(model, im, jump=0.5, noise_mul=6, classifier_func=None, classifier_mul_func=None):
     im = 2 * im - 1
 
     N,_,_,_ = im.shape
@@ -161,11 +158,11 @@ def redraw_im(model, im, jump=0.5, noise_mul=6, classifier_func=None, classifier
     time = int(ACTUAL_STEPS * jump)
     t = torch.Tensor([time]*N).long().to(device)
     _, im2 = noise(im, t)
-    return sample_from(model, im2, time, noise_mul=noise_mul, classifier_func=classifier_func, classifier_mul=classifier_mul)
+    return sample_from(model, im2, time, noise_mul=noise_mul, classifier_func=classifier_func, classifier_mul_func=classifier_mul_func)
 
 # Sample N images from the model.
 #  display_count: number of times to display intermediate result
-def sample(model, N, display_count = 4, noise_mul = 6, classifier_func = None, classifier_mul = 1):
+def sample(model, N, display_count = 4, noise_mul = 6, classifier_func = None, classifier_mul_func = None):
     with torch.no_grad():
         # Initial samples
         size = (N, NUM_CHANNELS, ART_SIZE, ART_SIZE)
@@ -174,7 +171,7 @@ def sample(model, N, display_count = 4, noise_mul = 6, classifier_func = None, c
         s = ACTUAL_STEPS // display_count if display_count != 0 else ACTUAL_STEPS*5
 
         for t in tqdm(range(ACTUAL_STEPS, 0, -1)):
-            h = sample_step(model, h, t, noise_mul, classifier_func=classifier_func, classifier_mul=classifier_mul)
+            h = sample_step(model, h, t, noise_mul, classifier_func=classifier_func, classifier_mul_func=classifier_mul_func)
 
             if t % s == (s//2):
                 print("ITERATION",t)
