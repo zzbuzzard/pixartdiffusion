@@ -106,6 +106,12 @@ def getσ(t):
     # return ((H - L) * t/steps + L).float()
     return getβ(t)
 
+def getσ_classifier(t):
+    L = torch.tensor(0.005, dtype=torch.float)
+    H = torch.tensor(0.018, dtype=torch.float)
+
+    return ((H - L) * t/STEPS + L).float()
+
 
 # Goes from x(t) -> x(t-1)
 #  noise_mul: Multiplier on top of getσ(t). Higher values lead to more chaotic images
@@ -129,7 +135,7 @@ def sample_step(model, im, t, noise_mul = 8, classifier_func = None, classifier_
         # if t==1 don't attempt to use classifier guidance
         if classifier_func != None and t != 1:
             grad = classifier_func(im, ts)
-            new_mean += grad * classifier_mul * getσ(t)
+            new_mean += grad * classifier_mul * getσ_classifier(t)
 
         add_noise = getσ(t) * z * noise_mul
         im = new_mean + add_noise      # add random noise on
