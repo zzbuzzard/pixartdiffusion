@@ -6,15 +6,29 @@ from pixartdiffusion.util import sharp_scale, draw_list
 import random
 
 # Downscales a 2D tensor exactly, using averaging
+#  Works for 2D tensors, or (B, X, Y), or (B, C, X, Y)
 def downscale_avg(im, factor):
-    X,Y = im.shape
+    assert len(im.shape) in [2, 3, 4]
+    X, Y = im.shape[-2:]
+    d1, d2 = len(im.shape)-2, len(im.shape)-1
     assert X%factor==0
     assert Y%factor==0
     X2,Y2 = X//factor, Y//factor
-    im2 = torch.zeros((X2, Y2), dtype=im.dtype, device=im.device)
+
+    shape2 = list(im.shape)
+    shape2[d1]=X2
+    shape2[d2]=Y2
+    shape2 = tuple(shape2)
+    
+    im2 = torch.zeros(shape2, dtype=im.dtype, device=im.device)
     for i in range(factor):
         for j in range(factor):
-            im2 += im[i::factor, j::factor]
+            if len(im.shape)==2:
+                im2 += im[i::factor, j::factor]
+            elif len(im.shape)==3:
+                im2 += im[:, i::factor, j::factor]
+            else:
+                im2 += im[:, :, i::factor, j::factor]
     im2 /= factor * factor
     return im2
 
@@ -66,9 +80,7 @@ def clip_grad_func(clip_model, tokenized_text, num_shifts = 16, shift_range = 14
             grad = torch.autograd.grad(closeness, im_v)[0] / num_shifts
                 
         # Downscale grad to grad2 (e.g. 224^2 -> 32^2)
-        grad2 = torch.zeros((1, 3, ART_SIZE, ART_SIZE), device=device)
-        for i in range(3):
-            grad2[0, i] = downscale_avg(grad[0,i], clip_res_mul)
+        grad2 = downscale_avg(grad, clip_res_mul)
 
         return grad2
     
