@@ -2,3 +2,5 @@ build/*
 */__pycache__/*
 __pycache__/*
 pixartdiffusion.egg-info
+data/
+.idea/

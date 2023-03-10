@@ -2,16 +2,18 @@ import torch
 from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
+import torch.utils.data as dutils
 
 from pixartdiffusion.parameters import ACTUAL_STEPS, device
 import pixartdiffusion.noise as noise
 import pixartdiffusion.util as util
 import pixartdiffusion.sample as sample
 import pixartdiffusion.dset as dset
-import pixartdiffusion.model as model
+import pixartdiffusion.model as pixmodel
 
 learning_rate = 1e-4
 batch_size = 128
+
 
 # Performs one epoch of training
 # Note: I was working with quite a small dataset, so it prints nothing during the epoch
@@ -62,13 +64,12 @@ def run():
     print("Loading dataset...")
     dataset = dset.PixDataset(args.data_path)
     print("Loaded dataset of size", len(dataset))
-    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    train_loader = dutils.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    model = model.UNet().to(device)
+    model = pixmodel.UNet().to(device)
     epoch = 1
     if args.load_path != "":
         epoch = util.load_model(model, args.load_path)
-        print("Loaded model from epoch", epoch)
 
     # SIMPLE_LOSS defines which version of loss will be used. Should probably be set to true.
     SIMPLE_LOSS = True
@@ -80,8 +81,8 @@ def run():
     else:
         def loss_fn(ims, xs, ts):
             loss = mse(ims, xs)
-            α = 1 - getβ(ts)
-            mul = getβ(ts)**2 / (2 * getσ(t)**2 * α * (1-αt[ts]))
+            α = 1 - noise.getβ(ts)
+            mul = noise.getβ(ts)**2 / (2 * sample.getσ(ts) ** 2 * α * (1 - noise.αt[ts]))
             return torch.sum(mul * loss)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # betas=(0.5, 0.999)
@@ -134,6 +135,7 @@ def run():
             scheduler.step()
         
         epoch += 1
+
 
 if __name__=="__main__":
     # Handle command line arguments

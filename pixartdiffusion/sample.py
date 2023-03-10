@@ -206,9 +206,8 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    model = model.UNet().to(device)
+    model = model.UNet().to(device).eval()
     epoch = util.load_model(model, args.model_path)
-    print("Loaded model from epoch", epoch)
 
     xs = sample(model, args.num_samples, display_count=0, noise_mul=args.noise_mul)
     sheet = util.to_drawable(xs)

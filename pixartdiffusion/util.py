@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import image
 from matplotlib import colors
 from pixartdiffusion.parameters import *
+import os
 
 # Loads an image into a numpy array
 # Returns a float array of shape ART_SIZE x ART_SIZE x NUM_CHANNELS, normalised to 0..1
@@ -181,11 +182,16 @@ def save_model(model, epoch, path):
 
 # Loads the model from the specified path
 def load_model(model, path):
+    if not os.path.exists(path):
+        print(f"Error loading model: path \"{path}\" does not exist. Starting from new model instead.")
+        return 1
+
     checkpoint = torch.load(path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     epoch = checkpoint['epoch']
     
     model.train()
+    print("Loaded model from epoch", epoch)
 
     return epoch
 

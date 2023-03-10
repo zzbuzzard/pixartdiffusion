@@ -1,0 +1,6 @@
+setuptools
+torch
+numpy
+matplotlib
+Pillow
+tqdm
